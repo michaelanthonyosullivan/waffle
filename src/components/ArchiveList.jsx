@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { dateFor, formatDate, todayNumber } from '../lib/dates.js'
 import { loadResults } from '../lib/results.js'
-import { STAR_CAP } from '../lib/share.js'
+import { STAR_CAP } from '../lib/rules.js'
 
 function Result({ value }) {
   if (value === undefined) return <span className="archive__result">Play</span>

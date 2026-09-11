@@ -1,8 +1,7 @@
 /* Waffle — the shareable result. */
 
 import { SIZE, cellIndex } from './core.js'
-
-export const STAR_CAP = 5
+import { STAR_CAP } from './rules.js'
 
 /**
  * The emoji grid shared after a game: green squares for tiles in the right

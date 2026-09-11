@@ -329,3 +329,77 @@ describe('the modals and controls', () => {
     expect(swapsLeft()).toBe(15)
   })
 })
+
+describe('coming back later', () => {
+  function seedGame(overrides = {}) {
+    const puzzle = WAFFLE_DAILY[0]
+    localStorage.setItem(
+      'waffle-clone:game',
+      JSON.stringify({
+        version: 1,
+        mode: 'daily',
+        number: todayNumber(),
+        label: `Daily Waffle #${todayNumber()}`,
+        puzzle,
+        letters: puzzle.board,
+        swapsRemaining: 12,
+        status: 'playing',
+        revealed: false,
+        ...overrides,
+      }),
+    )
+  }
+
+  it('picks up exactly where the player left off', () => {
+    const first = render(<App />)
+    const before = cellsInOrder()
+    const from = before.findIndex((letter, index) => before.some((other, j) => j !== index && other !== letter))
+    const to = before.findIndex((letter, index) => index !== from && letter !== before[from])
+    swapCells(from, to)
+    const afterMove = cellsInOrder().join('')
+    expect(swapsLeft()).toBe(14)
+
+    first.unmount() // the player closes the tab
+
+    render(<App />) // and comes back later
+    expect(cellsInOrder().join('')).toBe(afterMove)
+    expect(swapsLeft()).toBe(14)
+    expect(screen.getByText(/Daily Waffle #\d+/)).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('starts a fresh daily when the saved one is from an earlier day', () => {
+    seedGame({ number: todayNumber() - 1, label: 'Daily Waffle #yesterday' })
+
+    render(<App />)
+
+    expect(swapsLeft()).toBe(15)
+    expect(screen.getByText(new RegExp(`Daily Waffle #${todayNumber()}`))).toBeInTheDocument()
+    expect(currentPuzzle()).toBeTruthy()
+  })
+
+  it('does not reopen the result of a game that had already finished', () => {
+    const puzzle = WAFFLE_DAILY[0]
+    seedGame({
+      letters: solutionLetters(puzzle.across, puzzle.down).join(''),
+      swapsRemaining: 3,
+      status: 'won',
+    })
+
+    render(<App />)
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(swapsLeft()).toBe(3)
+    expect(screen.getAllByRole('gridcell').every((el) => el.classList.contains('is-green'))).toBe(true)
+    expect(screen.getAllByRole('button', { name: 'Share' })[0]).toBeEnabled()
+  })
+
+  it('ignores a saved game it cannot trust and deals the daily instead', () => {
+    localStorage.setItem('waffle-clone:game', '{ not json')
+
+    render(<App />)
+
+    expect(screen.getAllByRole('gridcell')).toHaveLength(21)
+    expect(swapsLeft()).toBe(15)
+  })
+})

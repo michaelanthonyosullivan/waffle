@@ -46,6 +46,14 @@ Play with a mouse or a finger, tap one tile then another, or use the keyboard:
 focus a tile, move with the arrow keys, and press Enter or Space to pick up and
 drop.
 
+## Picking up where you left off
+
+The game in progress is saved as you play, so closing the tab and coming back
+later puts the board back exactly as you left it — same tiles, same swaps left,
+same colours. A daily that has rolled over is not resumed (its board belonged to
+yesterday, and you can still find it in the archive), and a board that had
+already finished reopens without repeating its result.
+
 ## Stats, streaks and the archive
 
 `Stats & archive` shows your record — played, wins, current streak, best streak
@@ -80,6 +88,8 @@ src/
     puzzles.js              generated puzzle data
     dates.js                puzzle numbering and dates
     results.js              per-puzzle results, streaks, stats
+    savedGame.js            the in-progress board, validated on load
+    rules.js                swap budget and star cap
     share.js                the emoji grid and clipboard handling
     sound.js                Web Audio effects
   components/               Board, Tile, Controls, Modal, Stars, …
@@ -118,7 +128,7 @@ archive points back at the same puzzle it always did.
 
 ## Tests
 
-`npm test` runs 48 tests across six files:
+`npm test` runs 66 tests across seven files:
 
 - `lib/core.test.js` — board geometry, Wordle grading including repeated letters,
   and the rule that a crossing tile is graded against its across word first and
@@ -127,10 +137,14 @@ archive points back at the same puzzle it always did.
   board is a true anagram of the solution, it is never already solved, and it is
   always fair to solve inside the swap budget.
 - `lib/results.test.js` — streaks, gaps, losses, upgrades and corrupt storage.
+- `lib/savedGame.test.js` — what is resumed and what is refused: a daily from an
+  earlier day, a board that is not a rearrangement of its puzzle, unknown modes
+  and statuses, and storage that is missing or blocked.
 - `lib/dates.test.js`, `lib/share.test.js` — numbering and the share output.
 - `App.test.jsx` — renders the app in jsdom and plays it: tap and drag swaps,
   locked green tiles, the keyboard path, solving for stars, running out of swaps,
-  revealing the answer, retrying, sharing, and the stats/archive and help screens.
+  revealing the answer, retrying, sharing, the stats/archive and help screens,
+  and leaving mid-game and coming back.
 
 ## Theme
 

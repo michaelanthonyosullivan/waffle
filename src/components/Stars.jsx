@@ -1,4 +1,4 @@
-import { STAR_CAP } from '../lib/share.js'
+import { STAR_CAP } from '../lib/rules.js'
 
 export default function Stars({ earned }) {
   return (

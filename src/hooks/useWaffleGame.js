@@ -11,10 +11,9 @@ import { CELL_COUNT, gradeBoard, isSolved, solutionLetters } from '../lib/core.j
 import { dailyIndexFor, dateFor, formatDate, todayNumber } from '../lib/dates.js'
 import { WAFFLE_DAILY, WAFFLE_PRACTICE } from '../lib/puzzles.js'
 import { recordResult } from '../lib/results.js'
+import { SWAP_BUDGET, STAR_CAP } from '../lib/rules.js'
+import { loadSavedGame, saveGame } from '../lib/savedGame.js'
 import * as Sound from '../lib/sound.js'
-
-export const SWAP_BUDGET = 15
-export const STAR_CAP = 5
 
 const FLASH_MS = 470
 const MOVING_MS = 300
@@ -58,8 +57,35 @@ function dailyGame(attempt) {
   })
 }
 
+/** Rebuild a game from the stored snapshot. */
+function restoreGame(saved) {
+  const across = saved.puzzle.across.slice()
+  const down = saved.puzzle.down.slice()
+  return {
+    puzzle: saved.puzzle,
+    attempt: 0,
+    mode: saved.mode,
+    number: saved.number,
+    label: saved.label,
+    across,
+    down,
+    solution: solutionLetters(across, down),
+    // Each tile keeps a stable id for React keys; only the letters matter.
+    tiles: saved.letters.split('').map((letter, id) => ({ id, letter, cell: id })),
+    swapsRemaining: saved.swapsRemaining,
+    status: saved.status,
+    revealed: saved.revealed,
+    selectedId: null,
+  }
+}
+
+function initialGame() {
+  const saved = loadSavedGame()
+  return saved ? restoreGame(saved) : dailyGame(0)
+}
+
 export function useWaffleGame() {
-  const [game, setGame] = useState(() => dailyGame(0))
+  const [game, setGame] = useState(initialGame)
   const gameRef = useRef(game)
   const attemptRef = useRef(0)
   const timers = useRef([])
@@ -118,6 +144,23 @@ export function useWaffleGame() {
   const earnedStars =
     game.status === 'won' ? Math.max(0, Math.min(STAR_CAP, game.swapsRemaining)) : 0
   const locked = game.status === 'won' || game.revealed
+
+  // Remember the board so a returning player picks up where they left off.
+  useEffect(() => {
+    saveGame({
+      mode: game.mode,
+      number: game.number,
+      label: game.label,
+      puzzle: game.puzzle,
+      letters: [...game.tiles]
+        .sort((a, b) => a.cell - b.cell)
+        .map((tile) => tile.letter)
+        .join(''),
+      swapsRemaining: game.swapsRemaining,
+      status: game.status,
+      revealed: game.revealed,
+    })
+  }, [game])
 
   const start = useCallback(
     (puzzle, options) => {

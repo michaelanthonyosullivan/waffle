@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { todayNumber } from '../lib/dates.js'
 import { summarise } from '../lib/results.js'
-import { STAR_CAP } from '../lib/share.js'
+import { STAR_CAP } from '../lib/rules.js'
 
 export default function Distribution({ summary }) {
   const computed = useMemo(() => summarise(todayNumber()), [])

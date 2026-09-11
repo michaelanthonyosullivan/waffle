@@ -60,7 +60,8 @@ export default function App() {
   // screens the player opens themselves, and dismissing a result is remembered
   // per status so solving after a loss still celebrates.
   const [panel, setPanel] = useState(null) // 'stats' | 'help' | 'solution'
-  const [dismissedStatus, setDismissedStatus] = useState(null)
+  // A restored game that had already finished should not re-open its result.
+  const [dismissedStatus, setDismissedStatus] = useState(status === 'playing' ? null : status)
   const [soundOn, setSoundOn] = useState(() => Sound.isEnabled())
   const [toast, setToast] = useState('')
 
