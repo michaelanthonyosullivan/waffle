@@ -142,7 +142,8 @@ export default function Board({
         setDrag(null)
         if (cancelled) return
         if (!moved) onTap(tile.id)
-        else if (dropId) onSwap(tile.id, dropId)
+        // Tile id 0 is a real target, so test against null rather than truthiness.
+        else if (dropId !== null) onSwap(tile.id, dropId)
       }
       const up = () => finish(false)
       const cancel = () => finish(true)

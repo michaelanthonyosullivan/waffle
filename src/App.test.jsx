@@ -78,6 +78,50 @@ function centreOf(cell) {
   return { clientX: x * step + size / 2, clientY: y * step + size / 2 }
 }
 
+/** Drag the tile in `from` across the board and release over `to`. */
+function dragTile(from, to) {
+  const { clientX, clientY } = centreOf(to)
+  fireEvent.pointerDown(tileAt(from), { button: 0, pointerId: 7, clientX: 0, clientY: 0 })
+  fireEvent.pointerMove(window, { pointerId: 7, clientX: clientX / 2, clientY: clientY / 2 })
+  fireEvent.pointerMove(window, { pointerId: 7, clientX, clientY })
+  fireEvent.pointerUp(window, { pointerId: 7 })
+}
+
+/** Write a board straight into storage so a test starts from a known position. */
+function seedSavedGame({
+  puzzle,
+  letters,
+  swapsRemaining = 15,
+  status = 'playing',
+  revealed = false,
+  mode = 'practice',
+  number = 0,
+  label = 'Seeded board',
+}) {
+  localStorage.setItem(
+    'waffle-clone:game',
+    JSON.stringify({
+      version: 1,
+      mode,
+      number,
+      label,
+      puzzle,
+      letters: letters ?? puzzle.board,
+      swapsRemaining,
+      status,
+      revealed,
+    }),
+  )
+}
+
+// The daily a player reported: VISOR/SHAFT/AIDER across, VISTA/STAID/ROTOR
+// down, with the V sitting in the middle (cell 10) and E in the top-left.
+const REPORTED = {
+  across: ['visor', 'shaft', 'aider'],
+  down: ['vista', 'staid', 'rotor'],
+  board: 'eofiidthoovsritsariat',
+}
+
 function dialog() {
   return screen.getByRole('dialog')
 }
@@ -129,15 +173,54 @@ describe('the board', () => {
     const from = before.findIndex((letter, index) => before.some((other, j) => j !== index && other !== letter))
     const to = before.findIndex((letter, index) => index !== from && letter !== before[from])
 
-    const { clientX, clientY } = centreOf(to)
-    fireEvent.pointerDown(tileAt(from), { button: 0, pointerId: 7, clientX: 0, clientY: 0 })
-    fireEvent.pointerMove(window, { pointerId: 7, clientX: clientX / 2, clientY: clientY / 2 })
-    fireEvent.pointerMove(window, { pointerId: 7, clientX, clientY })
-    fireEvent.pointerUp(window, { pointerId: 7 })
+    dragTile(from, to)
 
     const after = cellsInOrder()
     expect(after[to]).toBe(before[from])
     expect(after[from]).toBe(before[to])
+    expect(swapsLeft()).toBe(14)
+  })
+
+  // Tile ids are handed out by creation order, so the top-left tile is id 0.
+  // A truthiness check on that id silently swallowed the drop (reported bug).
+  it('accepts a drag onto the top-left tile, whose id is zero', () => {
+    seedSavedGame({ puzzle: REPORTED })
+    render(<App />)
+    const before = cellsInOrder()
+    expect(before[10]).toBe('v')
+    expect(before[0]).toBe('e')
+
+    dragTile(10, 0)
+
+    const after = cellsInOrder()
+    expect(after[0]).toBe('v')
+    expect(after[10]).toBe('e')
+    expect(swapsLeft()).toBe(14)
+  })
+
+  it('accepts a tap onto the top-left tile too', () => {
+    seedSavedGame({ puzzle: REPORTED })
+    render(<App />)
+
+    swapCells(10, 0)
+
+    const after = cellsInOrder()
+    expect(after[0]).toBe('v')
+    expect(after[10]).toBe('e')
+    expect(swapsLeft()).toBe(14)
+  })
+
+  it('can drag a tile away from the top-left as well', () => {
+    seedSavedGame({ puzzle: REPORTED })
+    render(<App />)
+    const before = cellsInOrder()
+    const to = before.findIndex((letter, index) => index !== 0 && letter !== before[0])
+
+    dragTile(0, to)
+
+    const after = cellsInOrder()
+    expect(after[to]).toBe(before[0])
+    expect(after[0]).toBe(before[to])
     expect(swapsLeft()).toBe(14)
   })
 
@@ -332,22 +415,13 @@ describe('the modals and controls', () => {
 
 describe('coming back later', () => {
   function seedGame(overrides = {}) {
-    const puzzle = WAFFLE_DAILY[0]
-    localStorage.setItem(
-      'waffle-clone:game',
-      JSON.stringify({
-        version: 1,
-        mode: 'daily',
-        number: todayNumber(),
-        label: `Daily Waffle #${todayNumber()}`,
-        puzzle,
-        letters: puzzle.board,
-        swapsRemaining: 12,
-        status: 'playing',
-        revealed: false,
-        ...overrides,
-      }),
-    )
+    seedSavedGame({
+      puzzle: WAFFLE_DAILY[0],
+      mode: 'daily',
+      number: todayNumber(),
+      label: `Daily Waffle #${todayNumber()}`,
+      ...overrides,
+    })
   }
 
   it('picks up exactly where the player left off', () => {

@@ -128,7 +128,7 @@ archive points back at the same puzzle it always did.
 
 ## Tests
 
-`npm test` runs 66 tests across seven files:
+`npm test` runs 69 tests across seven files:
 
 - `lib/core.test.js` — board geometry, Wordle grading including repeated letters,
   and the rule that a crossing tile is graded against its across word first and
@@ -141,10 +141,11 @@ archive points back at the same puzzle it always did.
   earlier day, a board that is not a rearrangement of its puzzle, unknown modes
   and statuses, and storage that is missing or blocked.
 - `lib/dates.test.js`, `lib/share.test.js` — numbering and the share output.
-- `App.test.jsx` — renders the app in jsdom and plays it: tap and drag swaps,
-  locked green tiles, the keyboard path, solving for stars, running out of swaps,
-  revealing the answer, retrying, sharing, the stats/archive and help screens,
-  and leaving mid-game and coming back.
+- `App.test.jsx` — renders the app in jsdom and plays it: tap and drag swaps
+  (including onto the top-left tile, whose id is 0), locked green tiles, the
+  keyboard path, solving for stars, running out of swaps, revealing the answer,
+  retrying, sharing, the stats/archive and help screens, and leaving mid-game and
+  coming back.
 
 ## Theme
 
