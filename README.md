@@ -119,8 +119,7 @@ the daily is always winnable without perfect play.
 
 The generator uses a curated 5-letter word list (`tools/wordlist.txt`, the
 official Wordle answer list) so the answers are recognisable words rather than
-dictionary filler. It writes two files: the ES module this app imports, and a
-classic script for the preserved no-build version in `vanilla/`.
+dictionary filler.
 
 The daily board is chosen by date from the pool of 2000, so a puzzle recurs
 roughly every five and a half years with a new number. Every past day in the
@@ -154,13 +153,6 @@ surfaces (`hsl(150 30% 4%)`), the Tailwind green scale (`#4ade80` → `#15803d`)
 for correct tiles, and amber (`#fcd34d` → `#d97706`) for misplaced ones. The
 design tokens live at the top of `src/styles/index.css` under the same names the
 Wordle Social app uses (`--background`, `--primary`, `--border`, `--ring`, …).
-
-## `vanilla/`
-
-The original no-build version of this game is kept in `vanilla/` — same rules,
-same theme, plain scripts, no toolchain. Open `vanilla/index.html` in a browser
-to play it. It is a snapshot kept for reference and is not part of the build; it
-has its own copy of the generated puzzle data.
 
 ## Notes
 

@@ -33,10 +33,7 @@ import random
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WORDLIST = os.path.join(HERE, "wordlist.txt")
-# The Vite app imports the puzzle data as a module; the preserved no-build
-# version in vanilla/ loads the same data as a classic script.
-OUTPUT_APP = os.path.join(ROOT, "src", "lib", "puzzles.js")
-OUTPUT_VANILLA = os.path.join(ROOT, "vanilla", "js", "puzzles.js")
+OUTPUT = os.path.join(ROOT, "src", "lib", "puzzles.js")
 
 DAILY_COUNT = 2000
 PRACTICE_COUNT = 500
@@ -238,8 +235,8 @@ def main() -> None:
     daily_json = json.dumps(daily, separators=(",", ":"))
     practice_json = json.dumps(practice, separators=(",", ":"))
 
-    os.makedirs(os.path.dirname(OUTPUT_APP), exist_ok=True)
-    with open(OUTPUT_APP, "w", encoding="utf-8") as handle:
+    os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
+    with open(OUTPUT, "w", encoding="utf-8") as handle:
         handle.write(
             "\n".join(
                 header
@@ -252,23 +249,7 @@ def main() -> None:
             )
         )
 
-    os.makedirs(os.path.dirname(OUTPUT_VANILLA), exist_ok=True)
-    with open(OUTPUT_VANILLA, "w", encoding="utf-8") as handle:
-        handle.write(
-            "\n".join(
-                header
-                + [
-                    "const WAFFLE_DAILY = " + daily_json + ";",
-                    "",
-                    "const WAFFLE_PRACTICE = " + practice_json + ";",
-                    "",
-                ]
-            )
-        )
-
-    print(f"Wrote {len(daily)} daily and {len(practice)} practice puzzles to:")
-    print(f"  {OUTPUT_APP}")
-    print(f"  {OUTPUT_VANILLA}")
+    print(f"Wrote {len(daily)} daily and {len(practice)} practice puzzles to {OUTPUT}")
 
 
 if __name__ == "__main__":
